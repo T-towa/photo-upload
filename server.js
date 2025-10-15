@@ -1,4 +1,7 @@
-require('dotenv').config();
+// Load .env only in development (not in Cloud Run)
+if (process.env.NODE_ENV !== 'production') {
+  require('dotenv').config();
+}
 
 const express = require('express');
 const multer = require('multer');
@@ -14,9 +17,17 @@ const supabaseUrl = process.env.SUPABASE_URL;
 const supabaseKey = process.env.SUPABASE_KEY;
 const bucketName = process.env.SUPABASE_BUCKET || 'photos';
 
+console.log('Environment check:', {
+  hasUrl: !!supabaseUrl,
+  hasKey: !!supabaseKey,
+  bucket: bucketName,
+  nodeEnv: process.env.NODE_ENV
+});
+
 let supabase;
 if (supabaseUrl && supabaseKey) {
   supabase = createClient(supabaseUrl, supabaseKey);
+  console.log('Supabase client initialized successfully');
 } else {
   console.warn('Warning: SUPABASE_URL and SUPABASE_KEY not set. Upload functionality will not work.');
 }
