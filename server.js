@@ -14,12 +14,12 @@ const supabaseUrl = process.env.SUPABASE_URL;
 const supabaseKey = process.env.SUPABASE_KEY;
 const bucketName = process.env.SUPABASE_BUCKET || 'photos';
 
-if (!supabaseUrl || !supabaseKey) {
-  console.error('Error: SUPABASE_URL and SUPABASE_KEY must be set in .env file');
-  process.exit(1);
+let supabase;
+if (supabaseUrl && supabaseKey) {
+  supabase = createClient(supabaseUrl, supabaseKey);
+} else {
+  console.warn('Warning: SUPABASE_URL and SUPABASE_KEY not set. Upload functionality will not work.');
 }
-
-const supabase = createClient(supabaseUrl, supabaseKey);
 
 // 静的ファイル配信
 app.use(express.static('public'));
@@ -27,6 +27,10 @@ app.use(express.static('public'));
 // 写真アップロードエンドポイント
 app.post('/upload', upload.single('photo'), async (req, res) => {
   try {
+    if (!supabase) {
+      return res.status(500).json({ error: 'Supabase設定がされていません' });
+    }
+
     if (!req.file) {
       return res.status(400).json({ error: 'ファイルが選択されていません' });
     }
