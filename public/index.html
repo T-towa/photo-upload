@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>写真アップロード</title>
+</head>
+<body>
+  <h1>写真をアップロード</h1>
+
+  <form id="uploadForm">
+    <input type="file" id="photoInput" accept="image/*" required>
+    <button type="submit">アップロード</button>
+  </form>
+
+  <div id="message"></div>
+  <div id="result"></div>
+
+  <script>
+    const form = document.getElementById('uploadForm');
+    const messageDiv = document.getElementById('message');
+    const resultDiv = document.getElementById('result');
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const fileInput = document.getElementById('photoInput');
+      const file = fileInput.files[0];
+
+      if (!file) {
+        messageDiv.textContent = 'ファイルを選択してください';
+        return;
+      }
+
+      messageDiv.textContent = 'アップロード中...';
+      resultDiv.textContent = '';
+
+      const formData = new FormData();
+      formData.append('photo', file);
+
+      try {
+        const response = await fetch('/upload', {
+          method: 'POST',
+          body: formData,
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+          messageDiv.textContent = 'アップロード成功！';
+          resultDiv.innerHTML = `
+            <p>ファイル名: ${data.file.name}</p>
+            <a href="${data.file.url}" target="_blank">画像を表示</a>
+          `;
+          form.reset();
+        } else {
+          messageDiv.textContent = 'エラー: ' + data.error;
+        }
+      } catch (error) {
+        messageDiv.textContent = 'アップロードに失敗しました';
+        console.error('Error:', error);
+      }
+    });
+  </script>
+</body>
+</html>
