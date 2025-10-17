@@ -1,13 +1,17 @@
 <!DOCTYPE html>
 <html lang="ja">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
   <title>写真をアップロードしてね！</title>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;700;900&family=Nunito:wght@700;900&display=swap" rel="stylesheet">
+  <link
+    href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;700;900&family=Nunito:wght@700;900&display=swap"
+    rel="stylesheet">
   <link rel="stylesheet" href="./assets/css/styles.css" />
 </head>
+
 <body>
   <main class="wrap uploader">
     <section class="card" role="region" aria-labelledby="title">
@@ -18,15 +22,13 @@
           <strong>写真を選択</strong>
           <span class="hint">タップで選択 / ドラッグ&ドロップ（PC）</span>
           <input
-            type="file"
-            id="photoInput"
-            name="photo"
-            accept="image/*"
-            capture="environment"
-            multiple
-            required
-            aria-required="true"
-          />
+           type="file" 
+           id="photoInput" 
+           name="photo" 
+           accept="image/*"
+            multiple required 
+            aria-required="true" 
+            />
         </div>
         <div class="preview-grid" id="previewList" aria-live="polite"></div>
         <div class="actions">
@@ -41,4 +43,5 @@
   </main>
   <script src="./assets/js/app.js" defer></script>
 </body>
+
 </html>

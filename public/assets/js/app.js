@@ -19,7 +19,22 @@ let blobUrls = new Set();
 
 function fileKey(file){return[file.name,file.size,file.type,file.lastModified].join('|')}
 
-document.addEventListener('DOMContentLoaded',()=>{resetUI({clearAll:true})});
+document.addEventListener('DOMContentLoaded',()=>{
+  if (input) {
+    input.removeAttribute('capture');
+    input.setAttribute('accept','image/*');
+    input.multiple = true;
+  }
+  const isTouch = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
+  if (isTouch) {
+    const hintEl = document.querySelector('.hint');
+    if (hintEl) hintEl.textContent = '写真フォルダからえらんでね';
+    ['dragenter','dragover','dragleave','drop'].forEach(ev=>{
+      dz.addEventListener(ev,e=>e.preventDefault(),{passive:false});
+    });
+  }
+  resetUI({clearAll:true});
+});
 
 input.addEventListener('change',()=>{
   if(!input.files?.length)return;
