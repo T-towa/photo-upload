@@ -1,6 +1,6 @@
 'use strict';
 
-const MAX_SIZE_BYTES = 500 * 1024 * 1024;
+const MAX_SIZE_BYTES = 50 * 1024 * 1024;
 const ALLOW_TYPES = /^image\//;
 const SINGLE_UPLOAD = true;
 
