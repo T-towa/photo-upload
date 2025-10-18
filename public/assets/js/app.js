@@ -127,7 +127,12 @@ form.addEventListener('submit',async e=>{
   showInfo('アップロード中…');
   showProgress(0);
   try{
-    const data=await uploadWithProgress('/upload',selectedFiles.map(x=>x.file),p=>showProgress(p));
+    const data=await uploadWithProgress('/upload',selectedFiles.map(x=>x.file),p=>{
+      showProgress(p);
+      if(p >= 80 && p < 100) {
+        showInfo('サーバーで処理中…');
+      }
+    });
     if(data?.success){
       showOk('アップロード成功！');
       if(Array.isArray(data.files)){
@@ -162,8 +167,28 @@ function uploadWithProgress(url,files,onProgress){
     const xhr=new XMLHttpRequest();
     xhr.open('POST',url);
     xhr.responseType='json';
-    xhr.upload.onprogress=e=>{if(e.lengthComputable&&typeof onProgress==='function')onProgress(Math.round((e.loaded/e.total)*100))};
-    xhr.onload=()=>{const res=xhr.response||safeParseJSON(xhr.responseText);if(xhr.status>=200&&xhr.status<300)resolve(res);else reject(res||new Error('Upload failed: '+xhr.status))};
+    
+    // アップロード進捗（0-80%）
+    xhr.upload.onprogress=e=>{
+      if(e.lengthComputable&&typeof onProgress==='function'){
+        const uploadPercent = Math.round((e.loaded/e.total)*80); // 80%まで
+        onProgress(uploadPercent);
+      }
+    };
+    
+    // アップロード完了時（80%→85%）
+    xhr.upload.onload=()=>{
+      if(typeof onProgress==='function')onProgress(85);
+    };
+    
+    xhr.onload=()=>{
+      // サーバー処理完了（85%→100%）
+      if(typeof onProgress==='function')onProgress(100);
+      const res=xhr.response||safeParseJSON(xhr.responseText);
+      if(xhr.status>=200&&xhr.status<300)resolve(res);
+      else reject(res||new Error('Upload failed: '+xhr.status));
+    };
+    
     xhr.onerror=()=>reject(new Error('Network error'));
     xhr.onabort=()=>reject(new Error('Aborted'));
     const fd=new FormData();
