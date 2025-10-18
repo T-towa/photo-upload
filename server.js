@@ -36,53 +36,70 @@ if (supabaseUrl && supabaseKey) {
 app.use(express.static('public'));
 
 // 写真アップロードエンドポイント
-app.post('/upload', upload.single('photo'), async (req, res) => {
+app.post('/upload', upload.array('photos[]'), async (req, res) => {
   try {
     if (!supabase) {
       return res.status(500).json({ error: 'Supabase設定がされていません' });
     }
 
-    if (!req.file) {
+    if (!req.files || req.files.length === 0) {
       return res.status(400).json({ error: 'ファイルが選択されていません' });
     }
 
-    const filePath = req.file.path;
-    const fileName = req.file.originalname;
-    const timestamp = Date.now();
-    const uniqueFileName = `${timestamp}-${fileName}`;
+    const uploadedFiles = [];
+    
+    // 複数ファイルを順次処理
+    for (const file of req.files) {
+      const filePath = file.path;
+      const fileName = file.originalname;
+      const timestamp = Date.now();
+      const uniqueFileName = `${timestamp}-${fileName}`;
 
-    // ファイルを読み込み
-    const fileBuffer = fs.readFileSync(filePath);
+      try {
+        // ファイルを読み込み
+        const fileBuffer = fs.readFileSync(filePath);
 
-    // Supabase Storageにアップロード
-    const { data, error } = await supabase.storage
-      .from(bucketName)
-      .upload(uniqueFileName, fileBuffer, {
-        contentType: req.file.mimetype,
-        upsert: false,
-      });
+        // Supabase Storageにアップロード
+        const { data, error } = await supabase.storage
+          .from(bucketName)
+          .upload(uniqueFileName, fileBuffer, {
+            contentType: file.mimetype,
+            upsert: false,
+          });
 
-    // 一時ファイル削除
-    fs.unlinkSync(filePath);
+        // 一時ファイル削除
+        fs.unlinkSync(filePath);
 
-    if (error) {
-      console.error('Supabase upload error:', error);
-      return res.status(500).json({ error: 'アップロードに失敗しました: ' + error.message });
+        if (error) {
+          console.error('Supabase upload error:', error);
+          throw new Error('アップロードに失敗しました: ' + error.message);
+        }
+
+        // 公開URLを取得
+        const { data: publicUrlData } = supabase.storage
+          .from(bucketName)
+          .getPublicUrl(uniqueFileName);
+
+        uploadedFiles.push({
+          name: fileName,
+          path: data.path,
+          url: publicUrlData.publicUrl,
+        });
+      } catch (fileError) {
+        // エラーが発生したファイルの一時ファイルも削除
+        try {
+          fs.unlinkSync(filePath);
+        } catch (unlinkError) {
+          console.error('Failed to delete temp file:', unlinkError);
+        }
+        throw fileError;
+      }
     }
-
-    // 公開URLを取得
-    const { data: publicUrlData } = supabase.storage
-      .from(bucketName)
-      .getPublicUrl(uniqueFileName);
 
     res.json({
       success: true,
       message: 'アップロード成功',
-      file: {
-        name: fileName,
-        path: data.path,
-        url: publicUrlData.publicUrl,
-      },
+      files: uploadedFiles,
     });
   } catch (error) {
     console.error('Upload error:', error);
