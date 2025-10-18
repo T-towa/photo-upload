@@ -134,7 +134,7 @@ form.addEventListener('submit',async e=>{
       }
     });
     if(data?.success){
-      showOk('アップロード成功！');
+      showOk('アップロード完了！');
       if(Array.isArray(data.files)){
         const list=data.files.map(f=>{
           const name=escapeHTML(f?.name??'(no-name)');
