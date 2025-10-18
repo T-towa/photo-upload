@@ -1,8 +1,8 @@
 'use strict';
 
-const MAX_SIZE_BYTES = 10 * 1024 * 1024;
+const MAX_SIZE_BYTES = 500 * 1024 * 1024;
 const ALLOW_TYPES = /^image\//;
-const SINGLE_UPLOAD = true;
+const SINGLE_UPLOAD = false;
 
 const form = document.getElementById('uploadForm');
 const input = document.getElementById('photoInput');
